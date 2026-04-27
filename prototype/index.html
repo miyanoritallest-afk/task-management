@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>タスクボード</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      color: #1a1a2e;
+    }
+
+    /* ヘッダー */
+    header {
+      background: #fff;
+      border-bottom: 1px solid #e2e5ea;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    header h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a1a2e;
+      letter-spacing: -0.3px;
+    }
+    header h1 span { color: #4a90e2; }
+
+    /* ボード */
+    #board {
+      display: flex;
+      gap: 16px;
+      padding: 24px;
+      align-items: flex-start;
+      overflow-x: auto;
+    }
+
+    /* カラム */
+    .column {
+      background: #fff;
+      border-radius: 10px;
+      width: 300px;
+      min-width: 300px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100vh - 104px);
+    }
+
+    .column-header {
+      padding: 12px 12px 8px;
+      border-bottom: 1px solid #f0f2f5;
+      flex-shrink: 0;
+    }
+    .column-header-top {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .column-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #555;
+      flex: 1;
+    }
+    .column-count {
+      background: #f0f2f5;
+      color: #777;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 7px;
+    }
+
+    /* ソートボタン */
+    .sort-bar {
+      display: flex;
+      gap: 4px;
+    }
+    .sort-btn {
+      flex: 1;
+      background: #f5f6f8;
+      border: 1px solid #e2e5ea;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #666;
+      padding: 3px 6px;
+      cursor: pointer;
+      transition: background .1s, border-color .1s, color .1s;
+      white-space: nowrap;
+    }
+    .sort-btn:hover { background: #eaf1fb; border-color: #4a90e2; color: #4a90e2; }
+    .sort-btn.active { background: #eaf1fb; border-color: #4a90e2; color: #4a90e2; }
+
+    /* カードリスト */
+    .card-list {
+      padding: 10px 10px 0;
+      flex: 1;
+      overflow-y: auto;
+      min-height: 40px;
+    }
+
+    /* カード */
+    .card {
+      background: #fff;
+      border: 1px solid #eaecef;
+      border-left: 4px solid #d0d5dd;
+      border-radius: 7px;
+      padding: 10px 10px 8px;
+      margin-bottom: 8px;
+      cursor: grab;
+      transition: box-shadow .15s, opacity .15s;
+      position: relative;
+      user-select: none;
+    }
+    .card:hover { box-shadow: 0 3px 10px rgba(0,0,0,.1); }
+    .card.dragging { opacity: 0.4; cursor: grabbing; }
+
+    /* 優先度ボーダー色 */
+    .card.priority-high   { border-left-color: #e53935; }
+    .card.priority-medium { border-left-color: #f5a623; }
+    .card.priority-low    { border-left-color: #8bc34a; }
+    .card.priority-none   { border-left-color: #d0d5dd; }
+
+    /* 優先度バッジ */
+    .priority-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 10px;
+      margin-bottom: 5px;
+      letter-spacing: 0.3px;
+    }
+    .priority-badge.high   { background: #fdecea; color: #c62828; }
+    .priority-badge.medium { background: #fff8e1; color: #e65100; }
+    .priority-badge.low    { background: #f1f8e9; color: #558b2f; }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 500;
+      flex: 1;
+      cursor: pointer;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+    .card-title:hover { color: #4a90e2; }
+
+    /* カードタイトルインライン編集 */
+    .card-title-input {
+      flex: 1;
+      border: 1.5px solid #4a90e2;
+      border-radius: 5px;
+      padding: 2px 6px;
+      font-size: 14px;
+      font-family: inherit;
+      font-weight: 500;
+      line-height: 1.4;
+      outline: none;
+      width: 100%;
+    }
+
+    .card-delete {
+      background: none;
+      border: none;
+      color: #bbb;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      padding: 0 2px;
+      flex-shrink: 0;
+      margin-top: -1px;
+    }
+    .card-delete:hover { color: #e53935; }
+
+    .card-due {
+      font-size: 11px;
+      margin-top: 6px;
+      color: #888;
+    }
+    .card-due.overdue { color: #e53935; font-weight: 600; }
+
+    .card-actions {
+      display: flex;
+      gap: 4px;
+      margin-top: 8px;
+    }
+    .card-move {
+      background: #f5f6f8;
+      border: 1px solid #e2e5ea;
+      border-radius: 4px;
+      font-size: 13px;
+      padding: 2px 8px;
+      cursor: pointer;
+      color: #555;
+      line-height: 1.4;
+    }
+    .card-move:hover { background: #eaf1fb; border-color: #4a90e2; color: #4a90e2; }
+
+    /* ドロップインジケーター */
+    .drop-indicator {
+      height: 3px;
+      background: #4a90e2;
+      border-radius: 3px;
+      margin: 2px 0;
+      display: none;
+    }
+    .drop-indicator.active { display: block; }
+
+    /* カード追加ボタン */
+    .add-card-btn {
+      margin: 10px 10px;
+      background: none;
+      border: none;
+      color: #888;
+      font-size: 13px;
+      cursor: pointer;
+      text-align: left;
+      padding: 6px 8px;
+      border-radius: 6px;
+      width: calc(100% - 20px);
+      display: block;
+      flex-shrink: 0;
+    }
+    .add-card-btn:hover { background: #f0f2f5; color: #4a90e2; }
+
+    /* カード追加フォーム */
+    .add-card-form {
+      margin: 6px 10px 10px;
+      flex-shrink: 0;
+      display: none;
+    }
+    .add-card-form.open { display: block; }
+    .add-card-form textarea {
+      width: 100%;
+      border: 1.5px solid #4a90e2;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 13px;
+      font-family: inherit;
+      resize: none;
+      outline: none;
+      line-height: 1.4;
+    }
+    .add-card-form-error {
+      font-size: 11px;
+      color: #e53935;
+      margin: 3px 2px 0;
+      min-height: 16px;
+    }
+
+    /* 追加フォーム内 優先度選択 */
+    .add-priority-row {
+      display: flex;
+      gap: 4px;
+      margin: 6px 0 4px;
+      align-items: center;
+    }
+    .add-priority-label-head {
+      font-size: 11px;
+      font-weight: 600;
+      color: #777;
+      white-space: nowrap;
+    }
+    .add-priority-radio { display: none; }
+    .add-priority-opt {
+      flex: 1;
+      text-align: center;
+      padding: 3px 2px;
+      border: 1.5px solid #e2e5ea;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color .1s, background .1s;
+      user-select: none;
+    }
+    .add-priority-radio:checked + .add-priority-opt { border-width: 2px; }
+    .add-priority-radio[value="high"]:checked   + .add-priority-opt { border-color:#e53935; background:#fdecea; color:#c62828; }
+    .add-priority-radio[value="medium"]:checked + .add-priority-opt { border-color:#f5a623; background:#fff8e1; color:#e65100; }
+    .add-priority-radio[value="low"]:checked    + .add-priority-opt { border-color:#8bc34a; background:#f1f8e9; color:#558b2f; }
+    .add-priority-radio[value="none"]:checked   + .add-priority-opt { border-color:#aaa;    background:#f5f6f8; color:#555; }
+
+    .add-card-form-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+      align-items: center;
+    }
+    .btn-add {
+      background: #4a90e2;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-add:disabled { background: #b0c8ef; cursor: not-allowed; }
+    .btn-add:not(:disabled):hover { background: #3a7bd5; }
+    .btn-cancel {
+      background: none;
+      border: none;
+      color: #888;
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 4px;
+    }
+    .btn-cancel:hover { color: #333; }
+
+    /* モーダル */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.35);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .15s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: #fff;
+      border-radius: 12px;
+      width: 460px;
+      max-width: 94vw;
+      box-shadow: 0 8px 40px rgba(0,0,0,.18);
+      padding: 24px;
+      position: relative;
+      transform: translateY(10px);
+      transition: transform .15s;
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .modal-header h2 { font-size: 16px; font-weight: 700; color: #1a1a2e; }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 22px;
+      color: #aaa;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 2px;
+    }
+    .modal-close:hover { color: #333; }
+
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .field input, .field textarea {
+      width: 100%;
+      border: 1.5px solid #e2e5ea;
+      border-radius: 7px;
+      padding: 8px 10px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color .12s;
+    }
+    .field input:focus, .field textarea:focus { border-color: #4a90e2; }
+    .field textarea { resize: vertical; min-height: 80px; }
+
+    /* モーダル内 優先度セレクト */
+    .priority-select-group { display: flex; gap: 8px; }
+    .priority-radio { display: none; }
+    .priority-label {
+      flex: 1;
+      text-align: center;
+      padding: 6px 4px;
+      border: 1.5px solid #e2e5ea;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color .12s, background .12s;
+      user-select: none;
+    }
+    .priority-radio:checked + .priority-label { border-width: 2px; }
+    .priority-radio[value="high"]:checked   + .priority-label { border-color:#e53935; background:#fdecea; color:#c62828; }
+    .priority-radio[value="medium"]:checked + .priority-label { border-color:#f5a623; background:#fff8e1; color:#e65100; }
+    .priority-radio[value="low"]:checked    + .priority-label { border-color:#8bc34a; background:#f1f8e9; color:#558b2f; }
+    .priority-radio[value="none"]:checked   + .priority-label { border-color:#aaa;    background:#f5f6f8; color:#555; }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid #f0f2f5;
+    }
+    .btn-save {
+      background: #4a90e2;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 8px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-save:disabled { background: #b0c8ef; cursor: not-allowed; }
+    .btn-save:not(:disabled):hover { background: #3a7bd5; }
+    .btn-discard {
+      background: none;
+      border: 1.5px solid #e2e5ea;
+      border-radius: 7px;
+      padding: 8px 16px;
+      font-size: 14px;
+      color: #555;
+      cursor: pointer;
+    }
+    .btn-discard:hover { border-color: #aaa; }
+
+    /* トースト */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #1a1a2e;
+      color: #fff;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-size: 13px;
+      opacity: 0;
+      transition: opacity .2s, transform .2s;
+      pointer-events: none;
+      z-index: 300;
+      white-space: nowrap;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #toast.error { background: #e53935; }
+
+    /* ゴーストカード */
+    #drag-ghost {
+      position: fixed;
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0.85;
+      width: 240px;
+      background: #fff;
+      border: 1.5px solid #4a90e2;
+      border-left: 4px solid #4a90e2;
+      border-radius: 7px;
+      padding: 10px;
+      font-size: 14px;
+      box-shadow: 0 6px 20px rgba(0,0,0,.2);
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>タスク<span>ボード</span></h1>
+</header>
+
+<div id="board"></div>
+
+<!-- カード詳細モーダル -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <h2>カードを編集</h2>
+      <button class="modal-close" id="modal-close" aria-label="閉じる">×</button>
+    </div>
+    <div class="field">
+      <label>タイトル</label>
+      <input type="text" id="modal-title" maxlength="100" placeholder="タイトルを入力">
+    </div>
+    <div class="field">
+      <label>説明</label>
+      <textarea id="modal-desc" rows="3" placeholder="説明を入力（任意）"></textarea>
+    </div>
+    <div class="field">
+      <label>期限日</label>
+      <input type="date" id="modal-due">
+    </div>
+    <div class="field">
+      <label>優先度</label>
+      <div class="priority-select-group">
+        <input class="priority-radio" type="radio" name="modal-priority" id="p-high"   value="high">
+        <label class="priority-label" for="p-high">🔴 高</label>
+        <input class="priority-radio" type="radio" name="modal-priority" id="p-medium" value="medium">
+        <label class="priority-label" for="p-medium">🟡 中</label>
+        <input class="priority-radio" type="radio" name="modal-priority" id="p-low"    value="low">
+        <label class="priority-label" for="p-low">🟢 低</label>
+        <input class="priority-radio" type="radio" name="modal-priority" id="p-none"   value="none">
+        <label class="priority-label" for="p-none">— なし</label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-discard" id="modal-discard">キャンセル</button>
+      <button class="btn-save" id="modal-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- D&Dゴースト -->
+<div id="drag-ghost"></div>
+<!-- トースト -->
+<div id="toast"></div>
+
+<script>
+// ─── State ───────────────────────────────────────────────
+const PRIORITY_ORDER = { high: 0, medium: 1, low: 2, none: 3 };
+const PRIORITY_LABEL = { high: '高', medium: '中', low: '低' };
+const PRIORITY_ICON  = { high: '🔴', medium: '🟡', low: '🟢' };
+
+// 各カラムのソート状態: null | 'priority' | 'due'
+const colSort = { todo: null, doing: null, done: null };
+
+let state = {
+  columns: [
+    {
+      id: 'todo', title: 'Todo',
+      cards: [
+        { id: uid(), title: 'デザインカンプを確認する', description: 'FigmaのURLを確認してコメントをつける', dueDate: '2026-05-10', priority: 'medium' },
+        { id: uid(), title: 'API仕様書のレビュー',      description: '', dueDate: '2026-04-20', priority: 'high' },
+        { id: uid(), title: 'ユニットテストを書く',      description: '', dueDate: '2026-05-20', priority: 'low' },
+      ]
+    },
+    {
+      id: 'doing', title: '進行中',
+      cards: [
+        { id: uid(), title: 'Supabaseの初期セットアップ', description: 'テーブル作成・RLS設定まで', dueDate: '2026-04-30', priority: 'high' },
+        { id: uid(), title: 'カンバンボードの実装',       description: '', dueDate: '2026-05-05', priority: 'medium' },
+      ]
+    },
+    {
+      id: 'done', title: '完了',
+      cards: [
+        { id: uid(), title: '要件定義ドキュメント作成', description: '', dueDate: '2026-04-15', priority: 'none' },
+      ]
+    },
+  ]
+};
+
+function uid() {
+  return Math.random().toString(36).slice(2, 10);
+}
+
+// ─── Helpers ─────────────────────────────────────────────
+function getColumn(colId) {
+  return state.columns.find(c => c.id === colId);
+}
+function getCardById(cardId) {
+  for (const col of state.columns) {
+    const card = col.cards.find(c => c.id === cardId);
+    if (card) return { card, col };
+  }
+  return null;
+}
+function isOverdue(dueDateStr) {
+  if (!dueDateStr) return false;
+  return dueDateStr < new Date().toISOString().slice(0, 10);
+}
+function formatDate(str) {
+  if (!str) return '';
+  const [y, m, d] = str.split('-');
+  return `${y}/${m}/${d}`;
+}
+
+// ソート済みカード配列を返す（元配列は変更しない）
+function sortedCards(cards, sortKey) {
+  if (!sortKey) return cards;
+  return [...cards].sort((a, b) => {
+    if (sortKey === 'priority') {
+      return (PRIORITY_ORDER[a.priority||'none']) - (PRIORITY_ORDER[b.priority||'none']);
+    }
+    if (sortKey === 'due') {
+      const da = a.dueDate || '9999-99-99';
+      const db = b.dueDate || '9999-99-99';
+      return da < db ? -1 : da > db ? 1 : 0;
+    }
+    return 0;
+  });
+}
+
+// ─── Render ───────────────────────────────────────────────
+function render() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+
+  state.columns.forEach((col, colIdx) => {
+    const colEl = document.createElement('div');
+    colEl.className = 'column';
+    colEl.dataset.colId = col.id;
+
+    // ヘッダー（タイトル＋カウント＋ソートボタン）
+    const header = document.createElement('div');
+    header.className = 'column-header';
+
+    const headerTop = document.createElement('div');
+    headerTop.className = 'column-header-top';
+    headerTop.innerHTML = `
+      <span class="column-title">${col.title}</span>
+      <span class="column-count">${col.cards.length}</span>
+    `;
+
+    const sortBar = document.createElement('div');
+    sortBar.className = 'sort-bar';
+    const sortMode = colSort[col.id];
+
+    const btnPri = document.createElement('button');
+    btnPri.className = 'sort-btn' + (sortMode === 'priority' ? ' active' : '');
+    btnPri.textContent = '↑ 優先度順';
+    btnPri.addEventListener('click', () => toggleSort(col.id, 'priority'));
+
+    const btnDue = document.createElement('button');
+    btnDue.className = 'sort-btn' + (sortMode === 'due' ? ' active' : '');
+    btnDue.textContent = '↑ 期限順';
+    btnDue.addEventListener('click', () => toggleSort(col.id, 'due'));
+
+    sortBar.appendChild(btnPri);
+    sortBar.appendChild(btnDue);
+
+    header.appendChild(headerTop);
+    header.appendChild(sortBar);
+    colEl.appendChild(header);
+
+    // カードリスト
+    const list = document.createElement('div');
+    list.className = 'card-list';
+    list.dataset.colId = col.id;
+
+    const displayCards = sortedCards(col.cards, colSort[col.id]);
+    const isSorted = !!colSort[col.id];
+
+    displayCards.forEach((card, cardIdx) => {
+      if (!isSorted) {
+        const indicator = document.createElement('div');
+        indicator.className = 'drop-indicator';
+        indicator.dataset.colId = col.id;
+        indicator.dataset.index = cardIdx;
+        list.appendChild(indicator);
+      }
+
+      const cardEl = createCardEl(card, col, colIdx);
+      list.appendChild(cardEl);
+    });
+
+    if (!isSorted) {
+      const endIndicator = document.createElement('div');
+      endIndicator.className = 'drop-indicator';
+      endIndicator.dataset.colId = col.id;
+      endIndicator.dataset.index = col.cards.length;
+      list.appendChild(endIndicator);
+    }
+
+    colEl.appendChild(list);
+
+    // 追加ボタン＆フォーム
+    const addBtn = document.createElement('button');
+    addBtn.className = 'add-card-btn';
+    addBtn.textContent = '+ カードを追加';
+    addBtn.addEventListener('click', () => openAddForm(col.id));
+    colEl.appendChild(addBtn);
+
+    const form = buildAddForm(col.id);
+    colEl.appendChild(form);
+
+    board.appendChild(colEl);
+  });
+
+  initDragDrop();
+}
+
+// ─── Add Card Form（優先度選択付き） ─────────────────────
+function buildAddForm(colId) {
+  const form = document.createElement('div');
+  form.className = 'add-card-form';
+  form.id = `form-${colId}`;
+  form.innerHTML = `
+    <textarea id="input-${colId}" placeholder="タイトルを入力..." rows="2" maxlength="200"></textarea>
+    <div class="add-card-form-error" id="err-${colId}"></div>
+    <div class="add-priority-row">
+      <span class="add-priority-label-head">優先度:</span>
+      <input class="add-priority-radio" type="radio" name="add-pri-${colId}" id="ap-high-${colId}"   value="high">
+      <label class="add-priority-opt" for="ap-high-${colId}">🔴 高</label>
+      <input class="add-priority-radio" type="radio" name="add-pri-${colId}" id="ap-medium-${colId}" value="medium">
+      <label class="add-priority-opt" for="ap-medium-${colId}">🟡 中</label>
+      <input class="add-priority-radio" type="radio" name="add-pri-${colId}" id="ap-low-${colId}"    value="low">
+      <label class="add-priority-opt" for="ap-low-${colId}">🟢 低</label>
+      <input class="add-priority-radio" type="radio" name="add-pri-${colId}" id="ap-none-${colId}"   value="none" checked>
+      <label class="add-priority-opt" for="ap-none-${colId}">— なし</label>
+    </div>
+    <div class="add-card-form-actions">
+      <button class="btn-add" id="addbtn-${colId}" disabled>追加</button>
+      <button class="btn-cancel" title="キャンセル">×</button>
+    </div>
+  `;
+
+  const textarea   = form.querySelector('textarea');
+  const addCardBtn = form.querySelector('.btn-add');
+  const cancelBtn  = form.querySelector('.btn-cancel');
+  const errEl      = form.querySelector('.add-card-form-error');
+
+  textarea.addEventListener('input', () => {
+    const val = textarea.value;
+    if (val.length > 100) {
+      errEl.textContent = '100文字以内で入力してください';
+      addCardBtn.disabled = true;
+    } else if (val.trim().length === 0) {
+      errEl.textContent = '';
+      addCardBtn.disabled = true;
+    } else {
+      errEl.textContent = '';
+      addCardBtn.disabled = false;
+    }
+  });
+
+  textarea.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeAddForm(colId);
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (!addCardBtn.disabled) submitAddForm(colId, form);
+    }
+  });
+
+  addCardBtn.addEventListener('click', () => {
+    if (!addCardBtn.disabled) submitAddForm(colId, form);
+  });
+
+  cancelBtn.addEventListener('click', () => closeAddForm(colId));
+
+  return form;
+}
+
+function submitAddForm(colId, form) {
+  const title    = form.querySelector('textarea').value.trim();
+  const checked  = form.querySelector('.add-priority-radio:checked');
+  const priority = checked ? checked.value : 'none';
+  doAddCard(colId, title, priority);
+}
+
+// ─── Card Element ─────────────────────────────────────────
+function createCardEl(card, col, colIdx) {
+  const el = document.createElement('div');
+  const p  = card.priority || 'none';
+  el.className = `card priority-${p}`;
+  el.dataset.cardId = card.id;
+  el.draggable = false;
+
+  const isFirst = colIdx === 0;
+  const isLast  = colIdx === state.columns.length - 1;
+
+  const badgeHtml = p !== 'none'
+    ? `<div class="priority-badge ${p}">${PRIORITY_ICON[p]} ${PRIORITY_LABEL[p]}</div>`
+    : '';
+
+  const dueHtml = card.dueDate
+    ? `<div class="card-due ${isOverdue(card.dueDate) ? 'overdue' : ''}">
+         ${isOverdue(card.dueDate) ? '⚠ 期限切れ: ' : '期限: '}${formatDate(card.dueDate)}
+       </div>`
+    : '';
+
+  el.innerHTML = `
+    ${badgeHtml}
+    <div class="card-top">
+      <span class="card-title">${escHtml(card.title)}</span>
+      <button class="card-delete" title="削除">×</button>
+    </div>
+    ${dueHtml}
+    <div class="card-actions">
+      ${isFirst ? '' : '<button class="card-move" data-dir="left">←</button>'}
+      ${isLast  ? '' : '<button class="card-move" data-dir="right">→</button>'}
+    </div>
+  `;
+
+  // タイトルダブルクリック → インライン編集
+  const titleSpan = el.querySelector('.card-title');
+  titleSpan.addEventListener('dblclick', (e) => {
+    e.stopPropagation();
+    startInlineEdit(el, card);
+  });
+
+  // タイトルシングルクリック → モーダル
+  titleSpan.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openModal(card.id);
+  });
+
+  // 削除
+  el.querySelector('.card-delete').addEventListener('click', (e) => {
+    e.stopPropagation();
+    doDeleteCard(card.id, col.id);
+  });
+
+  // 移動ボタン
+  el.querySelectorAll('.card-move').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      doMoveCard(card.id, col.id, btn.dataset.dir);
+    });
+  });
+
+  return el;
+}
+
+// ─── インライン編集（タイトルのみ） ──────────────────────
+function startInlineEdit(cardEl, card) {
+  const titleSpan = cardEl.querySelector('.card-title');
+  const input = document.createElement('input');
+  input.className = 'card-title-input';
+  input.value = card.title;
+  titleSpan.replaceWith(input);
+  input.focus();
+  input.select();
+
+  function commit() {
+    const val = input.value.trim();
+    if (val && val !== card.title) {
+      card.title = val;
+    }
+    render();
+  }
+
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); commit(); }
+    if (e.key === 'Escape') render(); // 破棄
+  });
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── Sort ─────────────────────────────────────────────────
+function toggleSort(colId, key) {
+  colSort[colId] = colSort[colId] === key ? null : key;
+  render();
+}
+
+// ─── Card CRUD ────────────────────────────────────────────
+function doAddCard(colId, title, priority) {
+  const col = getColumn(colId);
+  col.cards.push({ id: uid(), title, description: '', dueDate: '', priority: priority || 'none' });
+  closeAddForm(colId);
+  render();
+}
+
+function doDeleteCard(cardId, colId) {
+  const col = getColumn(colId);
+  col.cards = col.cards.filter(c => c.id !== cardId);
+  render();
+}
+
+function doMoveCard(cardId, fromColId, dir) {
+  const fromIdx = state.columns.findIndex(c => c.id === fromColId);
+  const toIdx   = dir === 'right' ? fromIdx + 1 : fromIdx - 1;
+  if (toIdx < 0 || toIdx >= state.columns.length) return;
+  const fromCol = state.columns[fromIdx];
+  const toCol   = state.columns[toIdx];
+  const cardIdx = fromCol.cards.findIndex(c => c.id === cardId);
+  const [card]  = fromCol.cards.splice(cardIdx, 1);
+  toCol.cards.push(card);
+  render();
+}
+
+// ─── Add Card Form open/close ─────────────────────────────
+let openFormColId = null;
+
+function openAddForm(colId) {
+  if (openFormColId) closeAddForm(openFormColId);
+  openFormColId = colId;
+  const form = document.getElementById(`form-${colId}`);
+  form.classList.add('open');
+  const ta = document.getElementById(`input-${colId}`);
+  ta.value = '';
+  document.getElementById(`err-${colId}`).textContent = '';
+  document.getElementById(`addbtn-${colId}`).disabled = true;
+  // 優先度リセット（なし）
+  const noneRadio = form.querySelector(`.add-priority-radio[value="none"]`);
+  if (noneRadio) noneRadio.checked = true;
+  setTimeout(() => ta.focus(), 0);
+}
+
+function closeAddForm(colId) {
+  const form = document.getElementById(`form-${colId}`);
+  if (form) form.classList.remove('open');
+  if (openFormColId === colId) openFormColId = null;
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (openFormColId) closeAddForm(openFormColId);
+    if (document.getElementById('modal-overlay').classList.contains('open')) closeModal(false);
+  }
+});
+
+// ─── Modal ────────────────────────────────────────────────
+let editingCardId = null;
+
+function openModal(cardId) {
+  const { card } = getCardById(cardId);
+  editingCardId = cardId;
+
+  document.getElementById('modal-title').value = card.title;
+  document.getElementById('modal-desc').value  = card.description || '';
+  document.getElementById('modal-due').value   = card.dueDate     || '';
+
+  const p = card.priority || 'none';
+  const radio = document.querySelector(`.priority-radio[value="${p}"]`);
+  if (radio) radio.checked = true;
+
+  updateSaveBtn();
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('modal-title').focus(), 50);
+}
+
+function closeModal(save) {
+  if (save) {
+    const title = document.getElementById('modal-title').value.trim();
+    if (!title) return;
+    const { card } = getCardById(editingCardId);
+    card.title       = title;
+    card.description = document.getElementById('modal-desc').value.trim();
+    card.dueDate     = document.getElementById('modal-due').value;
+    const checkedRadio = document.querySelector('.priority-radio:checked');
+    card.priority    = checkedRadio ? checkedRadio.value : 'none';
+    render();
+  }
+  document.getElementById('modal-overlay').classList.remove('open');
+  editingCardId = null;
+}
+
+function updateSaveBtn() {
+  const title = document.getElementById('modal-title').value.trim();
+  document.getElementById('modal-save').disabled = title.length === 0;
+}
+
+document.getElementById('modal-title').addEventListener('input', updateSaveBtn);
+document.getElementById('modal-save').addEventListener('click', () => closeModal(true));
+document.getElementById('modal-discard').addEventListener('click', () => closeModal(false));
+document.getElementById('modal-close').addEventListener('click', () => closeModal(false));
+document.getElementById('modal-overlay').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('modal-overlay')) closeModal(false);
+});
+
+// ─── Drag & Drop ──────────────────────────────────────────
+let drag = null;
+
+function initDragDrop() {
+  document.querySelectorAll('.card').forEach(cardEl => {
+    cardEl.addEventListener('mousedown', onCardMouseDown);
+  });
+}
+
+function onCardMouseDown(e) {
+  if (e.button !== 0) return;
+  if (e.target.closest('button')) return;
+  if (e.target.classList.contains('card-title-input')) return;
+
+  const cardEl    = e.currentTarget;
+  const cardId    = cardEl.dataset.cardId;
+  const colEl     = cardEl.closest('.column');
+  const fromColId = colEl.dataset.colId;
+
+  // ソート中の列はD&D無効
+  if (colSort[fromColId]) return;
+
+  const { card } = getCardById(cardId);
+  const ghost = document.getElementById('drag-ghost');
+  ghost.textContent = card.title;
+  ghost.style.display = 'block';
+  ghost.style.left = (e.clientX + 12) + 'px';
+  ghost.style.top  = (e.clientY + 4)  + 'px';
+
+  cardEl.classList.add('dragging');
+  drag = { cardId, fromColId, cardEl };
+
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup',   onMouseUp);
+  e.preventDefault();
+}
+
+function onMouseMove(e) {
+  if (!drag) return;
+  const ghost = document.getElementById('drag-ghost');
+  ghost.style.left = (e.clientX + 12) + 'px';
+  ghost.style.top  = (e.clientY + 4)  + 'px';
+  clearAllIndicators();
+  const target = findDropTarget(e.clientX, e.clientY);
+  if (target) target.classList.add('active');
+}
+
+function onMouseUp(e) {
+  if (!drag) return;
+  document.removeEventListener('mousemove', onMouseMove);
+  document.removeEventListener('mouseup',   onMouseUp);
+
+  document.getElementById('drag-ghost').style.display = 'none';
+  drag.cardEl.classList.remove('dragging');
+  clearAllIndicators();
+
+  const target = findDropTarget(e.clientX, e.clientY);
+  if (target) {
+    const toColId = target.dataset.colId;
+    // ソート中の列へのドロップは無効
+    if (!colSort[toColId]) {
+      applyDrop(drag.cardId, drag.fromColId, toColId, parseInt(target.dataset.index, 10));
+    }
+  }
+  drag = null;
+}
+
+function findDropTarget(cx, cy) {
+  for (const ind of document.querySelectorAll('.drop-indicator')) {
+    const r = ind.getBoundingClientRect();
+    if (cy >= r.top - 20 && cy <= r.bottom + 20 && cx >= r.left - 40 && cx <= r.right + 40) {
+      return ind;
+    }
+  }
+  for (const col of document.querySelectorAll('.column')) {
+    const r = col.getBoundingClientRect();
+    if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
+      const last = [...col.querySelectorAll('.drop-indicator')].pop();
+      if (last) return last;
+    }
+  }
+  return null;
+}
+
+function clearAllIndicators() {
+  document.querySelectorAll('.drop-indicator.active').forEach(el => el.classList.remove('active'));
+}
+
+function applyDrop(cardId, fromColId, toColId, toIndex) {
+  const fromCol = getColumn(fromColId);
+  const toCol   = getColumn(toColId);
+  const cardIdx = fromCol.cards.findIndex(c => c.id === cardId);
+  const [card]  = fromCol.cards.splice(cardIdx, 1);
+  let insertIdx = toIndex;
+  if (fromColId === toColId && cardIdx < toIndex) insertIdx = toIndex - 1;
+  toCol.cards.splice(Math.max(0, insertIdx), 0, card);
+  render();
+}
+
+// ─── Toast ────────────────────────────────────────────────
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (isError ? ' error' : '');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.className = ''; }, 3000);
+}
+
+// ─── Boot ─────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>

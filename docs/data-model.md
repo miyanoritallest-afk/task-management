@@ -36,6 +36,7 @@ erDiagram
         VARCHAR title
         TEXT description
         DATE due_date
+        VARCHAR priority
         VARCHAR color
         INTEGER position
         TIMESTAMP created_at
@@ -88,6 +89,7 @@ erDiagram
 | title | VARCHAR(100) | カードのタイトル |
 | description | TEXT | カードの説明文（フェーズ2） |
 | due_date | DATE | 締切日（フェーズ2） |
+| priority | VARCHAR(10) | 優先度（'high' / 'medium' / 'low' / 'none'）。デフォルト 'none' |
 | color | VARCHAR(20) | カードの色（フェーズ4） |
 | position | INTEGER | カラム内での表示順 |
 | created_at | TIMESTAMP | 作成日時 |

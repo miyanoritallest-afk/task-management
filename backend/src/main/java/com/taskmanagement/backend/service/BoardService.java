@@ -22,12 +22,12 @@ public class BoardService {
 
     @Transactional(readOnly = true)
     public List<Board> findAll() {
-        return boardRepository.findAll();
+        return boardRepository.findAllWithColumns();
     }
 
     @Transactional(readOnly = true)
     public Board findById(UUID id) {
-        return boardRepository.findById(id)
+        return boardRepository.findByIdWithColumns(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Board not found: " + id));
     }
 

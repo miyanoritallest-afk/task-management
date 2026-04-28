@@ -6,8 +6,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -33,7 +33,7 @@ public class Board {
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("position ASC")
     @JsonManagedReference("board-columns")
-    private List<BoardColumn> columns = new ArrayList<>();
+    private Set<BoardColumn> columns = new LinkedHashSet<>();
 
     @PrePersist
     protected void onCreate() {
@@ -57,5 +57,5 @@ public class Board {
     public void setName(String name) { this.name = name; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public List<BoardColumn> getColumns() { return columns; }
+    public Set<BoardColumn> getColumns() { return columns; }
 }

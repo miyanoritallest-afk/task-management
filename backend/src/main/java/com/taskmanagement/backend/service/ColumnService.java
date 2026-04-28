@@ -25,12 +25,12 @@ public class ColumnService {
 
     @Transactional(readOnly = true)
     public List<BoardColumn> findByBoard(UUID boardId) {
-        return columnRepository.findByBoardIdOrderByPositionAsc(boardId);
+        return columnRepository.findByBoardIdWithCards(boardId);
     }
 
     @Transactional(readOnly = true)
     public BoardColumn findById(UUID id) {
-        return columnRepository.findById(id)
+        return columnRepository.findByIdWithCards(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Column not found: " + id));
     }
 

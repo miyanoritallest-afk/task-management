@@ -1,11 +1,12 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import client from '../api/client'
-import type { Board } from '../types'
+import type { Board, Card } from '../types'
 
 interface BoardContextValue {
   boards: Board[]
   loading: boolean
   error: string | null
+  addCard: (columnId: string, card: Card) => void
 }
 
 const BoardContext = createContext<BoardContextValue | null>(null)
@@ -25,8 +26,19 @@ export function BoardProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false))
   }, [])
 
+  function addCard(columnId: string, card: Card) {
+    setBoards((prev) =>
+      prev.map((board) => ({
+        ...board,
+        columns: board.columns.map((col) =>
+          col.id === columnId ? { ...col, cards: [...col.cards, card] } : col
+        ),
+      }))
+    )
+  }
+
   return (
-    <BoardContext.Provider value={{ boards, loading, error }}>
+    <BoardContext.Provider value={{ boards, loading, error, addCard }}>
       {children}
     </BoardContext.Provider>
   )

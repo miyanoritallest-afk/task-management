@@ -4,36 +4,39 @@
 
 ### バックエンド
 
-| 役割 | 技術 |
-|------|------|
-| 言語 | Java 21 LTS |
-| フレームワーク | Spring Boot 3.3.x |
-| ビルドツール | Maven |
-| ORM | Spring Data JPA + Hibernate |
-| DB マイグレーション | Flyway |
-| バリデーション | spring-boot-starter-validation（Jakarta Validation 3.x） |
-| JDBC ドライバ | PostgreSQL JDBC Driver |
-| コネクションプール | HikariCP（Spring Boot 同梱） |
+| 役割 | 技術 | バージョン |
+|------|------|-----------|
+| 言語 | Java | 21 LTS |
+| フレームワーク | Spring Boot | 4.0.0 |
+| ビルドツール | Gradle | 8.14 |
+| ORM | Spring Data JPA + Hibernate | Spring Boot 4 管理 |
+| DB マイグレーション | Flyway | 11.3.0 |
+| バリデーション | spring-boot-starter-validation | Spring Boot 4 管理 |
+| JDBC ドライバ | PostgreSQL JDBC Driver | 42.7.4 |
+| コネクションプール | HikariCP | Spring Boot 4 同梱 |
+| JSON シリアライズ | jackson-datatype-jsr310 | Spring Boot 4 管理 |
+| テスト用 DB | H2 | Spring Boot 4 管理 |
 
 ### フロントエンド
 
-| 役割 | 技術 |
-|------|------|
-| UI ライブラリ | React 18.x |
-| ビルドツール | Vite 5.x |
-| HTTP クライアント | Axios |
-| 状態管理 | useState + Context API |
-| ルーティング | React Router v6 |
-| ドラッグ&ドロップ | @hello-pangea/dnd（フェーズ3で導入） |
-| スタイリング | CSS Modules |
-| トースト通知 | react-hot-toast |
+| 役割 | 技術 | バージョン |
+|------|------|-----------|
+| UI ライブラリ | React | 19.2.5 |
+| ビルドツール | Vite | 8.0.10 |
+| 言語 | TypeScript | 6.0.3 |
+| HTTP クライアント | Axios | 1.15.2 |
+| 状態管理 | useState + Context API | — |
+| ドラッグ&ドロップ | @hello-pangea/dnd | フェーズ3で導入 |
+| スタイリング | CSS Modules | — |
+| Vite プラグイン | @vitejs/plugin-react | 6.0.1 |
+| リンター | ESLint | 10.2.1 |
 
 ### インフラ（ローカル開発）
 
-| 役割 | 技術 |
-|------|------|
-| データベース | PostgreSQL 16 |
-| DB 起動方法 | Docker Compose |
+| 役割 | 技術 | バージョン |
+|------|------|-----------|
+| データベース | PostgreSQL | 16 |
+| DB 起動方法 | Docker Compose | — |
 
 ---
 
@@ -43,26 +46,25 @@
 
 #### Java 21 LTS
 - 最新の長期サポート（LTS）バージョン
-- Spring Boot 3.3.x との相性が最も良い
+- Spring Boot 4.0.0 との相性が最も良い
 
-#### Spring Boot 3.3.x
+#### Spring Boot 4.0.0
 - Java エコシステムの標準的な Web フレームワーク
 - 組み込み Tomcat で単一 JAR として起動可能
 - REST API を `@RestController` で簡潔に実装できる
 
-#### Maven
-- Spring Initializr のデフォルトビルドツール
-- `pom.xml` が明示的で学習コストが低い
+#### Gradle 8.14
+- Kotlin DSL（`build.gradle.kts`）で型安全なビルド定義が記述できる
+- Spring Boot 4 の依存関係管理プラグイン（`io.spring.dependency-management`）と組み合わせて使用
 
 #### Spring Data JPA + Hibernate
-- Prisma に相当する型安全な DB アクセス層
 - `JpaRepository` を継承するだけで CRUD が実装できる
 - `@Entity` アノテーションでエンティティクラスをテーブルにマッピング
 
-#### Flyway
+#### Flyway 11.3.0
 - 純 SQL 形式のマイグレーションファイル（`V1__create_boards.sql` など）
 - Spring Boot 起動時に自動実行される
-- Liquibase（XML/YAML 形式）より可読性が高い
+- `flyway-database-postgresql` で PostgreSQL 固有の方言をサポート
 
 #### HikariCP
 - Spring Boot の `spring-boot-starter-data-jpa` に同梱されており、追加設定不要
@@ -71,25 +73,26 @@
 
 ### フロントエンド
 
-#### React 18.x
-- コンポーネントベースの UI ライブラリ（安定版）
-- Next.js は使用しない（バックエンドは Spring Boot が担う）
+#### React 19.2.5
+- コンポーネントベースの UI ライブラリ（最新安定版）
+- フロントエンドのみ担当（バックエンドは Spring Boot が担う）
 
-#### Vite 5.x
+#### Vite 8.0.10
 - Create React App（CRA）は非推奨のため Vite を採用
 - ミリ秒単位の高速起動
 - 開発サーバーのプロキシ機能（`/api/*` を Spring Boot の 8080 ポートへ転送）でローカル開発の CORS 問題を解消
 
-#### Axios
+#### TypeScript 6.0.3
+- 型安全な開発でバグを早期発見
+- React コンポーネントの props 型定義が明確になる
+
+#### Axios 1.15.2
 - `fetch` と比較してレスポンスの自動 JSON パースが可能
-- インターセプターで API エラーのトースト表示を一元処理できる
+- インターセプターで API エラーの一元処理ができる
 
 #### useState + Context API
 - Redux は本プロジェクトの規模に対して過剰
 - `BoardContext` にボード全体の状態を集約し、シンプルに管理する
-
-#### React Router v6
-- フェーズ4（複数ボード対応）を見越して `/boards/:boardId` のルーティングを初期から導入
 
 #### @hello-pangea/dnd（フェーズ3）
 - `react-beautiful-dnd`（Atlassian が開発停止）のコミュニティ継続フォーク
@@ -98,7 +101,6 @@
 #### CSS Modules
 - コンポーネントスコープの CSS（グローバル汚染なし）
 - Vite でゼロ設定で動作
-- プロトタイプ（`prototype/index.html`）の CSS をそのまま流用しやすい
 
 ---
 
@@ -121,15 +123,18 @@
 
 ---
 
-## pom.xml 主要依存関係
+## build.gradle.kts 主要依存関係
 
-```xml
-<dependency> spring-boot-starter-web </dependency>
-<dependency> spring-boot-starter-data-jpa </dependency>
-<dependency> spring-boot-starter-validation </dependency>
-<dependency scope="runtime"> postgresql </dependency>
-<dependency> flyway-core </dependency>
-<dependency scope="test"> spring-boot-starter-test </dependency>
+```kotlin
+implementation("org.springframework.boot:spring-boot-starter-web")
+implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+implementation("org.springframework.boot:spring-boot-starter-validation")
+implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+runtimeOnly("org.postgresql:postgresql:42.7.4")
+runtimeOnly("com.h2database:h2")
+implementation("org.flywaydb:flyway-core:11.3.0")
+implementation("org.flywaydb:flyway-database-postgresql:11.3.0")
+testImplementation("org.springframework.boot:spring-boot-starter-test")
 ```
 
 ---
@@ -139,20 +144,20 @@
 ```json
 {
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.x",
-    "axios": "^1.x",
-    "react-hot-toast": "^2.x"
+    "axios": "^1.15.2",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
   },
   "devDependencies": {
-    "vite": "^5.x",
-    "@vitejs/plugin-react": "^4.x"
+    "@vitejs/plugin-react": "^6.0.1",
+    "eslint": "^10.2.1",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.10"
   }
 }
 ```
 
-フェーズ3で追加: `"@hello-pangea/dnd": "^16.x"`
+フェーズ3で追加予定: `"@hello-pangea/dnd": "^16.x"`
 
 ---
 
@@ -163,7 +168,7 @@
 docker compose up -d
 
 # 2. バックエンド起動（backend/ ディレクトリで）
-./mvnw spring-boot:run
+./gradlew bootRun
 
 # 3. フロントエンド起動（frontend/ ディレクトリで）
 npm run dev

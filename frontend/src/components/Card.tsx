@@ -1,27 +1,32 @@
+import type { Card as CardType, Priority } from '../types'
 import styles from '../styles/Card.module.css'
 
-const PRIORITY_LABEL = { high: '高', medium: '中', low: '低', none: 'なし' }
-const PRIORITY_COLOR = {
+const PRIORITY_LABEL: Record<Priority, string> = {
+  high: '高',
+  medium: '中',
+  low: '低',
+  none: 'なし',
+}
+
+const PRIORITY_COLOR: Record<Priority, string> = {
   high: '#e53935',
   medium: '#f5a623',
   low: '#8bc34a',
   none: '#d0d5dd',
 }
 
-function formatDate(iso) {
-  if (!iso) return null
+function formatDate(iso: string): string {
   const [y, m, d] = iso.split('-')
   return `${y}/${m}/${d}`
 }
 
-function isOverdue(iso) {
-  if (!iso) return false
+function isOverdue(iso: string): boolean {
   return new Date(iso) < new Date(new Date().toDateString())
 }
 
-export default function Card({ card }) {
-  const color = PRIORITY_COLOR[card.priority] ?? PRIORITY_COLOR.none
-  const overdue = isOverdue(card.dueDate)
+export default function Card({ card }: { card: CardType }) {
+  const color = PRIORITY_COLOR[card.priority]
+  const overdue = card.dueDate ? isOverdue(card.dueDate) : false
 
   return (
     <div className={styles.card} style={{ borderLeftColor: color }}>

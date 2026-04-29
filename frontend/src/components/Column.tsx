@@ -1,8 +1,9 @@
+import type { BoardColumn } from '../types'
 import Card from './Card'
 import styles from '../styles/Column.module.css'
 
-export default function Column({ column }) {
-  const sorted = [...(column.cards ?? [])].sort((a, b) => a.position - b.position)
+export default function Column({ column }: { column: BoardColumn }) {
+  const sorted = [...column.cards].sort((a, b) => a.position - b.position)
 
   return (
     <div className={styles.column}>

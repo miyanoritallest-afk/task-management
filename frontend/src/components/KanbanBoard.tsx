@@ -23,9 +23,7 @@ export default function KanbanBoard() {
   }
 
   const board = boards[0]
-  const columns = [...(board.columns ?? [])].sort(
-    (a, b) => a.position - b.position
-  )
+  const columns = [...board.columns].sort((a, b) => a.position - b.position)
 
   return (
     <div className={styles.wrapper}>

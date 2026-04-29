@@ -22,3 +22,11 @@ export interface Board {
   name: string
   columns: BoardColumn[]
 }
+
+export interface CreateCardRequest {
+  title: string
+  description?: string
+  dueDate?: string
+  priority: Priority
+  position: number
+}

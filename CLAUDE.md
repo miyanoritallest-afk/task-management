@@ -52,16 +52,41 @@ Types: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `style`
 4. Ensure PR body contains `Closes #<N>`
 5. After merge, delete branch: `git branch -d <branch-name>`
 
+## Port Assignment — Fixed, Never Change
+
+| Service    | Port | Config location                          |
+|------------|------|------------------------------------------|
+| PostgreSQL | 5432 | `docker-compose.yml`                     |
+| Backend    | 8080 | `backend/src/main/resources/application.properties` |
+| Frontend   | 5173 | Vite default (proxy target is 8080)      |
+
+**Rules (mandatory, no exceptions):**
+1. Each service MUST run on its designated port above.
+2. Before starting any server, check if the port is already in use.
+3. If the port is occupied, **kill the existing process first**, then start the server on the correct port.
+4. NEVER start a server on an alternative port as a workaround (e.g., 8081, 5174). Doing so will break the proxy and CORS configuration.
+
+Port check & kill commands:
+```bash
+# Check what is using a port (Windows)
+netstat -ano | grep :<PORT>
+# Kill by PID
+taskkill /PID <PID> /F
+
+# Check what is using a port (Unix/Git Bash)
+lsof -ti :<PORT> | xargs kill -9
+```
+
 ## Local Development Commands
 ```bash
-# Start PostgreSQL
+# 1. Start PostgreSQL
 docker compose up -d
 
-# Backend (from backend/)
-./gradlew bootRun
+# 2. Backend — must run on port 8080
+cd backend && ./gradlew bootRun
 
-# Frontend (from frontend/ — when created)
-npm run dev
+# 3. Frontend — must run on port 5173
+cd frontend && npm run dev
 ```
 
 ## Key Paths

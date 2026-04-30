@@ -42,12 +42,21 @@ public class CardService {
 
     public Card update(UUID id, Card patch) {
         Card existing = findById(id);
-        if (patch.getTitle() != null) existing.setTitle(patch.getTitle());
+        // title は必須フィールドのため null の場合はスキップ
+        if (patch.getTitle() != null) {
+            existing.setTitle(patch.getTitle());
+        }
+        // nullable フィールドは null も含めて上書き（null = クリア操作）
         existing.setDescription(patch.getDescription());
         existing.setDueDate(patch.getDueDate());
-        if (patch.getPriority() != null) existing.setPriority(patch.getPriority());
-        if (patch.getColor() != null) existing.setColor(patch.getColor());
-        if (patch.getPosition() != null) existing.setPosition(patch.getPosition());
+        existing.setColor(patch.getColor());
+        // priority と position は null の場合はスキップ（未指定扱い）
+        if (patch.getPriority() != null) {
+            existing.setPriority(patch.getPriority());
+        }
+        if (patch.getPosition() != null) {
+            existing.setPosition(patch.getPosition());
+        }
         return cardRepository.save(existing);
     }
 

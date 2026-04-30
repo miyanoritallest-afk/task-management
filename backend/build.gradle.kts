@@ -2,6 +2,7 @@ plugins {
     java
     id("org.springframework.boot") version "4.0.0"
     id("io.spring.dependency-management") version "1.1.7"
+    checkstyle
 }
 
 group = "com.taskmanagement"
@@ -31,6 +32,12 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql:11.3.0")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+}
+
+checkstyle {
+    toolVersion = "10.21.4"
+    configFile = file("config/checkstyle/checkstyle.xml")
+    isIgnoreFailures = false
 }
 
 tasks.withType<Test> {

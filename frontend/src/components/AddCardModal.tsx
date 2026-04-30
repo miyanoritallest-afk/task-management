@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react'
+import { useState, FormEvent, MouseEvent } from 'react'
 import { createCard } from '../api/client'
 import type { Card, Priority } from '../types'
 import styles from '../styles/AddCardModal.module.css'
@@ -46,7 +46,7 @@ export default function AddCardModal({ columnId, position, onSuccess, onClose }:
     }
   }
 
-  function handleBackdropClick(e: React.MouseEvent<HTMLDivElement>) {
+  function handleBackdropClick(e: MouseEvent<HTMLDivElement>) {
     if (e.target === e.currentTarget) onClose()
   }
 
@@ -55,10 +55,10 @@ export default function AddCardModal({ columnId, position, onSuccess, onClose }:
       <div className={styles.modal}>
         <p className={styles.title}>新しいカードを追加</p>
         <form onSubmit={handleSubmit} noValidate>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div className={styles.formFields}>
             <div className={styles.field}>
               <label className={styles.label} htmlFor="card-title">
-                タイトル <span style={{ color: '#e03e3e' }}>*</span>
+                タイトル <span className={styles.required}>*</span>
               </label>
               <input
                 id="card-title"

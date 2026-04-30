@@ -94,3 +94,35 @@ cd frontend && npm run dev
 - DB migrations: `backend/src/main/resources/db/migration/`
 - Requirements docs: `docs/`
 - Docker config: `docker-compose.yml`, `backend/Dockerfile`
+
+## Quality Check — Run Before Every PR
+
+### Frontend
+```bash
+cd frontend
+npm run lint        # ESLint（TS/TSX 対象、@typescript-eslint ルール込み）
+npm run type-check  # TypeScript 型チェック（tsc --noEmit）
+npm run build       # ビルド成功確認
+```
+
+**コーディングルール:**
+- インラインスタイル（`style={{ ... }}`）は禁止。すべて CSS Modules のクラスに定義する
+  - 例外: `Card.tsx` のボーダーカラー等、動的な値を持つスタイルはインライン可
+- `React.MouseEvent` 等の React 型は `import { MouseEvent } from 'react'` で明示インポートする（`React.` 名前空間参照は不可）
+- `any` 型の使用は禁止（`@typescript-eslint/no-explicit-any: error`）
+
+### Backend
+```bash
+cd backend
+./gradlew checkstyleMain  # Checkstyle（Google Style ベース）
+./gradlew build           # ビルド成功確認
+```
+
+**コーディングルール:**
+- ワイルドカードインポート（`import foo.*`）は禁止。個別インポートに展開する
+- `if` / `for` / `while` 等の制御文には必ず `{}` を付ける（単行でも省略不可）
+- 設定は `application.properties` に一元化する。Java `@Bean` と分散させない
+  - 例: Flyway 設定は `FlywayConfig.java` ではなく `application.properties` で管理
+- サービス層の PATCH メソッドで null の扱いが混在しないよう、各フィールドの更新方針をコメントで明示する
+  - 必須フィールド（`title` 等）: null なら更新しない
+  - nullable フィールド（`description`, `dueDate` 等）: null も上書きする（null = クリア操作）

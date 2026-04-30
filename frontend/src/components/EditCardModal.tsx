@@ -11,7 +11,7 @@ interface Props {
 }
 
 export default function EditCardModal({ card, columnId, onClose }: Props) {
-  const { updateCardInContext } = useBoard()
+  const { updateCardInContext, deleteCard } = useBoard()
   const [title, setTitle] = useState(card.title)
   const [description, setDescription] = useState(card.description ?? '')
   const [dueDate, setDueDate] = useState(card.dueDate ?? '')
@@ -19,6 +19,7 @@ export default function EditCardModal({ card, columnId, onClose }: Props) {
   const [titleError, setTitleError] = useState('')
   const [apiError, setApiError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -44,6 +45,18 @@ export default function EditCardModal({ card, columnId, onClose }: Props) {
       setApiError('カードの更新に失敗しました。もう一度お試しください。')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function handleDelete() {
+    setDeleting(true)
+    setApiError('')
+    try {
+      await deleteCard(columnId, card.id)
+      onClose()
+    } catch {
+      setApiError('カードの削除に失敗しました。もう一度お試しください。')
+      setDeleting(false)
     }
   }
 
@@ -120,12 +133,22 @@ export default function EditCardModal({ card, columnId, onClose }: Props) {
             {apiError && <p className={styles.apiError}>{apiError}</p>}
 
             <div className={styles.actions}>
-              <button type="button" className={styles.btnCancel} onClick={onClose}>
-                キャンセル
+              <button
+                type="button"
+                className={styles.btnDelete}
+                onClick={handleDelete}
+                disabled={deleting || submitting}
+              >
+                {deleting ? '削除中...' : '削除する'}
               </button>
-              <button type="submit" className={styles.btnSubmit} disabled={submitting}>
-                {submitting ? '保存中...' : '保存する'}
-              </button>
+              <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+                <button type="button" className={styles.btnCancel} onClick={onClose} disabled={deleting}>
+                  キャンセル
+                </button>
+                <button type="submit" className={styles.btnSubmit} disabled={submitting || deleting}>
+                  {submitting ? '保存中...' : '保存する'}
+                </button>
+              </div>
             </div>
           </div>
         </form>

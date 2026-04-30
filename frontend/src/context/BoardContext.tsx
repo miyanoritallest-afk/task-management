@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react'
 import client from '../api/client'
+import { deleteCard as deleteCardApi } from '../api/client'
 import type { Board, BoardColumn, Card } from '../types'
 
 interface BoardContextValue {
@@ -12,6 +13,7 @@ interface BoardContextValue {
   reorderColumns: (newColumns: BoardColumn[]) => void
   reorderCardsInColumn: (columnId: string, newCards: Card[]) => void
   refreshBoard: () => Promise<void>
+  deleteCard: (columnId: string, cardId: string) => Promise<void>
 }
 
 const BoardContext = createContext<BoardContextValue | null>(null)
@@ -97,6 +99,18 @@ export function BoardProvider({ children }: { children: ReactNode }) {
     )
   }
 
+  async function deleteCard(columnId: string, cardId: string): Promise<void> {
+    await deleteCardApi(cardId)
+    setBoards((prev) =>
+      prev.map((board) => ({
+        ...board,
+        columns: board.columns.map((col) =>
+          col.id === columnId ? { ...col, cards: col.cards.filter((c) => c.id !== cardId) } : col
+        ),
+      }))
+    )
+  }
+
   return (
     <BoardContext.Provider
       value={{
@@ -109,6 +123,7 @@ export function BoardProvider({ children }: { children: ReactNode }) {
         reorderColumns,
         reorderCardsInColumn,
         refreshBoard,
+        deleteCard,
       }}
     >
       {children}

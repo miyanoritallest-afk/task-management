@@ -1,10 +1,28 @@
 import axios from 'axios'
-import type { Card, CreateCardRequest } from '../types'
+import type { Card, BoardColumn, CreateCardRequest } from '../types'
 
 const client = axios.create({ baseURL: '/api' })
 
 export function createCard(columnId: string, data: CreateCardRequest): Promise<Card> {
   return client.post<Card>(`/columns/${columnId}/cards`, data).then((res) => res.data)
+}
+
+export function updateCard(
+  id: string,
+  payload: Partial<Pick<Card, 'title' | 'description' | 'dueDate' | 'priority' | 'position' | 'color'>>
+): Promise<Card> {
+  return client.patch<Card>(`/cards/${id}`, payload).then((res) => res.data)
+}
+
+export function updateColumn(
+  id: string,
+  payload: Partial<Pick<BoardColumn, 'name' | 'position'>>
+): Promise<BoardColumn> {
+  return client.patch<BoardColumn>(`/columns/${id}`, payload).then((res) => res.data)
+}
+
+export function moveCard(cardId: string, newColumnId: string): Promise<Card> {
+  return client.patch<Card>(`/cards/${cardId}/move`, null, { params: { columnId: newColumnId } }).then((res) => res.data)
 }
 
 export default client

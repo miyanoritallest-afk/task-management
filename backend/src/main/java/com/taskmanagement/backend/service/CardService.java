@@ -43,11 +43,11 @@ public class CardService {
     public Card update(UUID id, Card patch) {
         Card existing = findById(id);
         if (patch.getTitle() != null) existing.setTitle(patch.getTitle());
-        if (patch.getDescription() != null) existing.setDescription(patch.getDescription());
-        if (patch.getDueDate() != null) existing.setDueDate(patch.getDueDate());
+        existing.setDescription(patch.getDescription());
+        existing.setDueDate(patch.getDueDate());
         if (patch.getPriority() != null) existing.setPriority(patch.getPriority());
         if (patch.getColor() != null) existing.setColor(patch.getColor());
-        existing.setPosition(patch.getPosition());
+        if (patch.getPosition() != null) existing.setPosition(patch.getPosition());
         return cardRepository.save(existing);
     }
 

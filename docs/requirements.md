@@ -8,7 +8,7 @@
 
 本アプリはWebフロントエンド開発の講座課題として作成するタスク管理ツールである。  
 Trello風のカンバンボード形式を採用し、タスクをカード形式で管理することで進捗状況を視覚的に把握できることを目的とする。  
-講座内でNext.js・Tailwind CSS・Supabase（PostgreSQL）・Prismaを用いたUIコンポーネント設計・状態管理・データベース設計・データ永続化の実装スキルを習得する。
+講座内でReact・CSS Modules・Spring Boot・PostgreSQL・Flyway を用いたUIコンポーネント設計・状態管理・REST API実装・データベース設計・データ永続化の実装スキルを習得する。
 
 ---
 
@@ -60,6 +60,6 @@ boards → columns → cards の1対多リレーション構造。
 
 ## 6. 技術・インフラ概要
 
-Next.js 14 + Tailwind CSS + Supabase（PostgreSQL）+ Prisma の構成。Vercelにホスティング。
+React 19 + CSS Modules（フロントエンド）+ Spring Boot 4 + PostgreSQL + Flyway（バックエンド）の構成。ローカル Docker Compose で PostgreSQL を起動。
 
 詳細は [技術スタック](tech-stack.md) および [非機能要件](non-functional.md) を参照。

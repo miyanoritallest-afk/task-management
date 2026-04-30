@@ -37,11 +37,12 @@
 
 | 項目 | 要件 |
 |------|------|
-| 保存場所 | Supabase（PostgreSQL）。Next.jsのAPI Route経由でアクセス |
-| ORM | Prismaを使用してデータアクセスを型安全に管理 |
-| セキュリティ | Supabaseの接続キーは環境変数で管理し、クライアントに露出させない |
+| 保存場所 | PostgreSQL（Docker Compose でローカル起動）。Spring Boot REST API 経由でアクセス |
+| ORM | Spring Data JPA + Hibernate を使用してデータアクセスを型安全に管理 |
+| マイグレーション | Flyway によるバージョン管理（`db/migration/V*.sql`） |
+| セキュリティ | データベース接続情報は `application.properties` または環境変数で管理し、クライアントに露出させない |
 | XSS対策 | ユーザー入力はテキストとして扱い、HTMLとして評価しない |
-| デプロイ | Vercelにホスティング。環境変数はVercelの管理画面で設定 |
+| デプロイ | ローカル開発環境のみ対象（Docker Compose + Gradle bootRun + Vite dev server） |
 
 ---
 

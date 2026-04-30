@@ -80,7 +80,7 @@ UI は `http://localhost:5173` で利用可能。Vite が `/api/*` リクエス�
 ## プロジェクト構造
 
 ```
-TaskuManegement/
+TaskManagement/
 ├── backend/                        # Spring Boot 4 アプリケーション
 │   ├── src/main/java/              # Java ソース（controllers, services, repositories）
 │   ├── src/main/resources/

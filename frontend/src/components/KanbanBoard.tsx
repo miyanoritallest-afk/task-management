@@ -9,7 +9,7 @@ import type { BoardColumn, Board } from '../types'
 import styles from '../styles/KanbanBoard.module.css'
 
 export default function KanbanBoard() {
-  const { boards, loading, error, reorderColumns, reorderCardsInColumn, moveCardInContext, refreshBoard, addColumn, addBoard } = useBoard()
+  const { boards, currentBoardIndex, setCurrentBoardIndex, loading, error, reorderColumns, reorderCardsInColumn, moveCardInContext, refreshBoard, addColumn, addBoard, deleteColumn } = useBoard()
   const [addColumnModalOpen, setAddColumnModalOpen] = useState(false)
   const [addBoardModalOpen, setAddBoardModalOpen] = useState(false)
 
@@ -30,7 +30,7 @@ export default function KanbanBoard() {
     return <div className={styles.center}>ボードがありません。</div>
   }
 
-  const board = boards[0]
+  const board = boards[currentBoardIndex] ?? boards[0]
   const sortedColumns = [...board.columns].sort((a, b) => a.position - b.position)
 
   async function handleDragEnd(result: DropResult) {
@@ -126,7 +126,15 @@ export default function KanbanBoard() {
     <div className={styles.wrapper}>
       <header className={styles.header}>
         <h1 className={styles.title}>タスク<strong>ボード</strong></h1>
-        <span className={styles.boardName}>{board.name}</span>
+        <select
+          className={styles.boardSelect}
+          value={currentBoardIndex}
+          onChange={(e) => setCurrentBoardIndex(Number(e.target.value))}
+        >
+          {boards.map((b, i) => (
+            <option key={b.id} value={i}>{b.name}</option>
+          ))}
+        </select>
         <button
           className={styles.addBoardBtn}
           onClick={() => setAddBoardModalOpen(true)}
@@ -143,7 +151,12 @@ export default function KanbanBoard() {
               {...provided.droppableProps}
             >
               {sortedColumns.map((col, index) => (
-                <Column key={col.id} column={col} index={index} />
+                <Column
+                  key={col.id}
+                  column={col}
+                  index={index}
+                  onDelete={() => deleteColumn(board.id, col.id)}
+                />
               ))}
               {provided.placeholder}
               <button

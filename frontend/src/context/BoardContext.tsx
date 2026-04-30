@@ -1,10 +1,12 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react'
 import client from '../api/client'
-import { deleteCard as deleteCardApi } from '../api/client'
+import { deleteCard as deleteCardApi, deleteColumn as deleteColumnApi } from '../api/client'
 import type { Board, BoardColumn, Card } from '../types'
 
 interface BoardContextValue {
   boards: Board[]
+  currentBoardIndex: number
+  setCurrentBoardIndex: (index: number) => void
   loading: boolean
   error: string | null
   addCard: (columnId: string, card: Card) => void
@@ -16,12 +18,14 @@ interface BoardContextValue {
   deleteCard: (columnId: string, cardId: string) => Promise<void>
   addColumn: (boardId: string, column: BoardColumn) => void
   addBoard: (board: Board) => void
+  deleteColumn: (boardId: string, columnId: string) => Promise<void>
 }
 
 const BoardContext = createContext<BoardContextValue | null>(null)
 
 export function BoardProvider({ children }: { children: ReactNode }) {
   const [boards, setBoards] = useState<Board[]>([])
+  const [currentBoardIndex, setCurrentBoardIndex] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -124,13 +128,30 @@ export function BoardProvider({ children }: { children: ReactNode }) {
   }
 
   function addBoard(board: Board) {
-    setBoards((prev) => [...prev, board])
+    setBoards((prev) => {
+      const next = [...prev, board]
+      setCurrentBoardIndex(next.length - 1)
+      return next
+    })
+  }
+
+  async function deleteColumn(boardId: string, columnId: string): Promise<void> {
+    await deleteColumnApi(columnId)
+    setBoards((prev) =>
+      prev.map((board) =>
+        board.id === boardId
+          ? { ...board, columns: board.columns.filter((col) => col.id !== columnId) }
+          : board
+      )
+    )
   }
 
   return (
     <BoardContext.Provider
       value={{
         boards,
+        currentBoardIndex,
+        setCurrentBoardIndex,
         loading,
         error,
         addCard,
@@ -142,6 +163,7 @@ export function BoardProvider({ children }: { children: ReactNode }) {
         deleteCard,
         addColumn,
         addBoard,
+        deleteColumn,
       }}
     >
       {children}

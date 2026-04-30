@@ -37,4 +37,8 @@ export function createBoard(data: CreateBoardRequest): Promise<Board> {
   return client.post<Board>('/boards', data).then((res) => res.data)
 }
 
+export function deleteColumn(id: string): Promise<void> {
+  return client.delete(`/columns/${id}`).then(() => undefined)
+}
+
 export default client

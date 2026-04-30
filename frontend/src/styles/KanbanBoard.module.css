@@ -73,6 +73,24 @@
   font-size: 15px;
 }
 
+.boardSelect {
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+  outline: none;
+}
+
+.boardSelect:focus {
+  border-color: #4a90e2;
+  background: #fff;
+}
+
 .addBoardBtn {
   margin-left: auto;
   padding: 6px 14px;

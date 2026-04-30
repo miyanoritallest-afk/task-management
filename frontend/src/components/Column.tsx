@@ -68,25 +68,21 @@ export default function Column({ column, index }: Props) {
                 {...dropProvided.droppableProps}
               >
                 {sorted.map((card, cardIndex) => (
-                  sortMode === 'manual' ? (
-                    <Draggable key={card.id} draggableId={card.id} index={cardIndex}>
-                      {(cardProvided, cardSnapshot) => (
-                        <div
-                          ref={cardProvided.innerRef}
-                          {...cardProvided.draggableProps}
-                          {...cardProvided.dragHandleProps}
-                          style={{
-                            ...cardProvided.draggableProps.style,
-                            opacity: cardSnapshot.isDragging ? 0.7 : 1,
-                          }}
-                        >
-                          <CardComponent card={card} onEdit={setEditingCard} />
-                        </div>
-                      )}
-                    </Draggable>
-                  ) : (
-                    <CardComponent key={card.id} card={card} onEdit={setEditingCard} />
-                  )
+                  <Draggable key={card.id} draggableId={card.id} index={cardIndex}>
+                    {(cardProvided, cardSnapshot) => (
+                      <div
+                        ref={cardProvided.innerRef}
+                        {...cardProvided.draggableProps}
+                        {...cardProvided.dragHandleProps}
+                        style={{
+                          ...cardProvided.draggableProps.style,
+                          opacity: cardSnapshot.isDragging ? 0.7 : 1,
+                        }}
+                      >
+                        <CardComponent card={card} onEdit={setEditingCard} />
+                      </div>
+                    )}
+                  </Draggable>
                 ))}
                 {dropProvided.placeholder}
               </div>

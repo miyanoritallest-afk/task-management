@@ -26,7 +26,7 @@
 | 言語 | TypeScript | 6.0.3 |
 | HTTP クライアント | Axios | 1.15.2 |
 | 状態管理 | useState + Context API | — |
-| ドラッグ&ドロップ | @hello-pangea/dnd | フェーズ3で導入 |
+| ドラッグ&ドロップ | @hello-pangea/dnd | 18.0.1 |
 | スタイリング | CSS Modules | — |
 | Vite プラグイン | @vitejs/plugin-react | 6.0.1 |
 | リンター | ESLint | 10.2.1 |
@@ -126,15 +126,30 @@
 ## build.gradle.kts 主要依存関係
 
 ```kotlin
-implementation("org.springframework.boot:spring-boot-starter-web")
-implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-implementation("org.springframework.boot:spring-boot-starter-validation")
-implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
-runtimeOnly("org.postgresql:postgresql:42.7.4")
-runtimeOnly("com.h2database:h2")
-implementation("org.flywaydb:flyway-core:11.3.0")
-implementation("org.flywaydb:flyway-database-postgresql:11.3.0")
-testImplementation("org.springframework.boot:spring-boot-starter-test")
+plugins {
+    java
+    id("org.springframework.boot") version "4.0.0"
+    id("io.spring.dependency-management") version "1.1.7"
+    checkstyle
+}
+
+dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+    runtimeOnly("org.postgresql:postgresql:42.7.4")
+    runtimeOnly("com.h2database:h2")
+    implementation("org.flywaydb:flyway-core:11.3.0")
+    implementation("org.flywaydb:flyway-database-postgresql:11.3.0")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+}
+
+checkstyle {
+    toolVersion = "10.21.4"
+    configFile = file("config/checkstyle/checkstyle.xml")
+    isIgnoreFailures = false
+}
 ```
 
 ---
@@ -144,6 +159,7 @@ testImplementation("org.springframework.boot:spring-boot-starter-test")
 ```json
 {
   "dependencies": {
+    "@hello-pangea/dnd": "^18.0.1",
     "axios": "^1.15.2",
     "react": "^19.2.5",
     "react-dom": "^19.2.5"
@@ -156,8 +172,6 @@ testImplementation("org.springframework.boot:spring-boot-starter-test")
   }
 }
 ```
-
-フェーズ3で追加予定: `"@hello-pangea/dnd": "^16.x"`
 
 ---
 

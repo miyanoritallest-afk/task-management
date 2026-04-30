@@ -11,10 +11,12 @@ import styles from '../styles/Column.module.css'
 interface Props {
   column: BoardColumn
   index: number
+  onDelete: () => Promise<void>
 }
 
-export default function Column({ column, index }: Props) {
+export default function Column({ column, index, onDelete }: Props) {
   const { addCard } = useBoard()
+  const [deleting, setDeleting] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [editingCard, setEditingCard] = useState<Card | null>(null)
   const [sortMode, setSortMode] = useState<CardSortMode>('manual')
@@ -24,6 +26,16 @@ export default function Column({ column, index }: Props) {
   function handleSuccess(card: Card) {
     addCard(column.id, card)
     setModalOpen(false)
+  }
+
+  async function handleDelete() {
+    if (!window.confirm(`「${column.name}」を削除しますか？\nこの列のカードもすべて削除されます。`)) return
+    setDeleting(true)
+    try {
+      await onDelete()
+    } finally {
+      setDeleting(false)
+    }
   }
 
   return (
@@ -57,6 +69,14 @@ export default function Column({ column, index }: Props) {
                 aria-label={`${column.name}にカードを追加`}
               >
                 +
+              </button>
+              <button
+                className={styles.deleteBtn}
+                onClick={handleDelete}
+                disabled={deleting}
+                aria-label={`${column.name}を削除`}
+              >
+                ×
               </button>
             </div>
           </div>

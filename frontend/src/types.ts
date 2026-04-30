@@ -32,3 +32,12 @@ export interface CreateCardRequest {
 }
 
 export type CardSortMode = 'manual' | 'priority' | 'dueDate'
+
+export interface CreateColumnRequest {
+  name: string
+  position: number
+}
+
+export interface CreateBoardRequest {
+  name: string
+}

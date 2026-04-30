@@ -1,11 +1,17 @@
+import { useState } from 'react'
 import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd'
 import { useBoard } from '../context/BoardContext'
 import Column from './Column'
+import AddColumnModal from './AddColumnModal'
+import AddBoardModal from './AddBoardModal'
 import { updateCard, updateColumn, moveCard } from '../api/client'
+import type { BoardColumn, Board } from '../types'
 import styles from '../styles/KanbanBoard.module.css'
 
 export default function KanbanBoard() {
-  const { boards, loading, error, reorderColumns, reorderCardsInColumn, moveCardInContext, refreshBoard } = useBoard()
+  const { boards, currentBoardIndex, setCurrentBoardIndex, loading, error, reorderColumns, reorderCardsInColumn, moveCardInContext, refreshBoard, addColumn, addBoard, deleteColumn } = useBoard()
+  const [addColumnModalOpen, setAddColumnModalOpen] = useState(false)
+  const [addBoardModalOpen, setAddBoardModalOpen] = useState(false)
 
   if (loading) {
     return (
@@ -24,7 +30,7 @@ export default function KanbanBoard() {
     return <div className={styles.center}>ボードがありません。</div>
   }
 
-  const board = boards[0]
+  const board = boards[currentBoardIndex] ?? boards[0]
   const sortedColumns = [...board.columns].sort((a, b) => a.position - b.position)
 
   async function handleDragEnd(result: DropResult) {
@@ -106,11 +112,35 @@ export default function KanbanBoard() {
     }
   }
 
+  function handleColumnAdded(column: BoardColumn) {
+    addColumn(board.id, column)
+    setAddColumnModalOpen(false)
+  }
+
+  function handleBoardAdded(newBoard: Board) {
+    addBoard(newBoard)
+    setAddBoardModalOpen(false)
+  }
+
   return (
     <div className={styles.wrapper}>
       <header className={styles.header}>
         <h1 className={styles.title}>タスク<strong>ボード</strong></h1>
-        <span className={styles.boardName}>{board.name}</span>
+        <select
+          className={styles.boardSelect}
+          value={currentBoardIndex}
+          onChange={(e) => setCurrentBoardIndex(Number(e.target.value))}
+        >
+          {boards.map((b, i) => (
+            <option key={b.id} value={i}>{b.name}</option>
+          ))}
+        </select>
+        <button
+          className={styles.addBoardBtn}
+          onClick={() => setAddBoardModalOpen(true)}
+        >
+          + ボードを追加
+        </button>
       </header>
       <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId="board" type="column" direction="horizontal">
@@ -121,13 +151,38 @@ export default function KanbanBoard() {
               {...provided.droppableProps}
             >
               {sortedColumns.map((col, index) => (
-                <Column key={col.id} column={col} index={index} />
+                <Column
+                  key={col.id}
+                  column={col}
+                  index={index}
+                  onDelete={() => deleteColumn(board.id, col.id)}
+                />
               ))}
               {provided.placeholder}
+              <button
+                className={styles.addColumnBtn}
+                onClick={() => setAddColumnModalOpen(true)}
+              >
+                + 列を追加
+              </button>
             </div>
           )}
         </Droppable>
       </DragDropContext>
+      {addColumnModalOpen && (
+        <AddColumnModal
+          boardId={board.id}
+          position={sortedColumns.length}
+          onSuccess={handleColumnAdded}
+          onClose={() => setAddColumnModalOpen(false)}
+        />
+      )}
+      {addBoardModalOpen && (
+        <AddBoardModal
+          onSuccess={handleBoardAdded}
+          onClose={() => setAddBoardModalOpen(false)}
+        />
+      )}
     </div>
   )
 }

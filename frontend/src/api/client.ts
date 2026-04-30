@@ -25,4 +25,8 @@ export function moveCard(cardId: string, newColumnId: string): Promise<Card> {
   return client.patch<Card>(`/cards/${cardId}/move`, null, { params: { columnId: newColumnId } }).then((res) => res.data)
 }
 
+export function deleteCard(id: string): Promise<void> {
+  return client.delete(`/cards/${id}`).then(() => undefined)
+}
+
 export default client

@@ -24,12 +24,17 @@ function isOverdue(iso: string): boolean {
   return new Date(iso) < new Date(new Date().toDateString())
 }
 
-export default function Card({ card }: { card: CardType }) {
+interface Props {
+  card: CardType
+  onEdit: (card: CardType) => void
+}
+
+export default function Card({ card, onEdit }: Props) {
   const color = PRIORITY_COLOR[card.priority]
   const overdue = card.dueDate ? isOverdue(card.dueDate) : false
 
   return (
-    <div className={styles.card} style={{ borderLeftColor: color }}>
+    <div className={styles.card} style={{ borderLeftColor: color }} onClick={() => onEdit(card)}>
       <div className={styles.header}>
         <span className={styles.title}>{card.title}</span>
         {card.priority !== 'none' && (

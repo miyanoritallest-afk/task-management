@@ -47,7 +47,7 @@ public class Card {
     private String color;
 
     @Column(nullable = false)
-    private int position;
+    private Integer position = 0;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -68,7 +68,7 @@ public class Card {
 
     public Card() {}
 
-    public Card(BoardColumn column, String title, int position) {
+    public Card(BoardColumn column, String title, Integer position) {
         this.column = column;
         this.title = title;
         this.position = position;
@@ -87,8 +87,8 @@ public class Card {
     public void setPriority(Priority priority) { this.priority = priority; }
     public String getColor() { return color; }
     public void setColor(String color) { this.color = color; }
-    public int getPosition() { return position; }
-    public void setPosition(int position) { this.position = position; }
+    public Integer getPosition() { return position; }
+    public void setPosition(Integer position) { this.position = position; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

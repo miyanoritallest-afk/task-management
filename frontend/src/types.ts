@@ -30,3 +30,5 @@ export interface CreateCardRequest {
   priority: Priority
   position: number
 }
+
+export type CardSortMode = 'manual' | 'priority' | 'dueDate'

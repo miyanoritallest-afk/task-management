@@ -14,6 +14,8 @@ interface BoardContextValue {
   reorderCardsInColumn: (columnId: string, newCards: Card[]) => void
   refreshBoard: () => Promise<void>
   deleteCard: (columnId: string, cardId: string) => Promise<void>
+  addColumn: (boardId: string, column: BoardColumn) => void
+  addBoard: (board: Board) => void
 }
 
 const BoardContext = createContext<BoardContextValue | null>(null)
@@ -111,6 +113,20 @@ export function BoardProvider({ children }: { children: ReactNode }) {
     )
   }
 
+  function addColumn(boardId: string, column: BoardColumn) {
+    setBoards((prev) =>
+      prev.map((board) =>
+        board.id === boardId
+          ? { ...board, columns: [...board.columns, column] }
+          : board
+      )
+    )
+  }
+
+  function addBoard(board: Board) {
+    setBoards((prev) => [...prev, board])
+  }
+
   return (
     <BoardContext.Provider
       value={{
@@ -124,6 +140,8 @@ export function BoardProvider({ children }: { children: ReactNode }) {
         reorderCardsInColumn,
         refreshBoard,
         deleteCard,
+        addColumn,
+        addBoard,
       }}
     >
       {children}

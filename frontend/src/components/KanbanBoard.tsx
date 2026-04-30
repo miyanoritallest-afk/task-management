@@ -56,9 +56,10 @@ export default function KanbanBoard() {
     const toColumn = sortedColumns.find((c) => c.id === destination.droppableId)
     if (!fromColumn || !toColumn) return
 
-    const fromCards = [...fromColumn.cards].sort((a, b) => a.position - b.position)
-    const movedCard = fromCards[source.index]
+    const movedCard = fromColumn.cards.find((c) => c.id === result.draggableId)
     if (!movedCard) return
+
+    const fromCards = [...fromColumn.cards].sort((a, b) => a.position - b.position)
 
     if (source.droppableId === destination.droppableId) {
       // 同一列内の並び替え

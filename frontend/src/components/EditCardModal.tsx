@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react'
+import { useState, FormEvent, MouseEvent } from 'react'
 import { updateCard } from '../api/client'
 import { useBoard } from '../context/BoardContext'
 import type { Card, Priority } from '../types'
@@ -60,7 +60,7 @@ export default function EditCardModal({ card, columnId, onClose }: Props) {
     }
   }
 
-  function handleBackdropClick(e: React.MouseEvent<HTMLDivElement>) {
+  function handleBackdropClick(e: MouseEvent<HTMLDivElement>) {
     if (e.target === e.currentTarget) onClose()
   }
 
@@ -69,10 +69,10 @@ export default function EditCardModal({ card, columnId, onClose }: Props) {
       <div className={styles.modal}>
         <p className={styles.title}>カードを編集</p>
         <form onSubmit={handleSubmit} noValidate>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div className={styles.formFields}>
             <div className={styles.field}>
               <label className={styles.label} htmlFor="edit-card-title">
-                タイトル <span style={{ color: '#e03e3e' }}>*</span>
+                タイトル <span className={styles.required}>*</span>
               </label>
               <input
                 id="edit-card-title"
@@ -141,7 +141,7 @@ export default function EditCardModal({ card, columnId, onClose }: Props) {
               >
                 {deleting ? '削除中...' : '削除する'}
               </button>
-              <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+              <div className={styles.actionsRight}>
                 <button type="button" className={styles.btnCancel} onClick={onClose} disabled={deleting}>
                   キャンセル
                 </button>

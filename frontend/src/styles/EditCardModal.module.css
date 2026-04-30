@@ -39,6 +39,10 @@
   color: #555;
 }
 
+.required {
+  color: #e03e3e;
+}
+
 .input,
 .textarea,
 .select {
@@ -79,11 +83,23 @@
   padding: 8px 10px;
 }
 
+.formFields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
   margin-top: 4px;
+}
+
+.actionsRight {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
 }
 
 .btnCancel {

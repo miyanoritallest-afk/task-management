@@ -38,6 +38,19 @@
 | データベース | PostgreSQL | 16 |
 | DB 起動方法 | Docker Compose | — |
 
+### インフラ（本番: AWS）
+
+| 役割 | 技術 | 備考 |
+|------|------|------|
+| サーバー | AWS EC2 | t3.micro、Amazon Linux 2023 |
+| 固定 IP | AWS Elastic IP | 再起動後も IP 不変 |
+| データベース | AWS RDS PostgreSQL | db.t3.micro、PostgreSQL 16 |
+| Web サーバー | Nginx | 静的配信 + `/api/*` リバースプロキシ |
+| コンテナ実行 | Docker | バックエンドを Docker コンテナで稼働 |
+| IaC | Terraform | `infra/ec2/` 配下で管理（AWS プロバイダー ~> 5.0） |
+
+詳細は [docs/infrastructure.md](infrastructure.md) を参照。
+
 ---
 
 ## 各技術の採用理由

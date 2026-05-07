@@ -1,0 +1,11 @@
+# このファイルをコピーして terraform.tfvars という名前にし、実際の値を入力してください
+# terraform.tfvars は .gitignore で除外されています（Gitに上がりません）
+
+# SSH接続を許可する自分のIPアドレス（/32 をつける）
+# 確認方法: https://www.whatismyip.com/ を開いて表示されたIPに /32 をつける
+# 例: my_ip_cidr = "203.0.113.1/32"
+my_ip_cidr = "あなたのIP/32"
+
+# AWSコンソールで作成したキーペアの名前（.pem ファイルの名前から拡張子を除いたもの）
+# 例: キーファイルが taskmanagement-key.pem なら "taskmanagement-key"
+key_pair_name = "キーペア名"

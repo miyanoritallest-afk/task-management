@@ -1,0 +1,10 @@
+# Terraform
+infra/**/.terraform/
+infra/**/*.tfstate
+infra/**/*.tfstate.backup
+infra/**/*.tfplan
+infra/**/terraform.tfvars
+infra/**/.terraform.lock.hcl
+
+# Docker build artifacts
+*.tar
